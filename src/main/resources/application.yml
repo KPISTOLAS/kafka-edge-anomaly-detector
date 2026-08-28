@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: edge-telemetry-service
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: edgetel
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example.projecte.model
+        spring.json.value.default.type: com.example.projecte.model.Telemetry
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+    listener:
+      concurrency: 3
+
+app:
+  topic: telemetry
+  detector:
+    window-size: 50
+    min-samples: 20
+    z-threshold: 3.0
+  simulator:
+    enabled: true
+    devices: 8
+    batch-per-tick: 200
+    anomaly-rate: 0.02
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: Edge telemetry ingestion and z-score anomaly alerting
+    java: 21
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      access: read_only
+  info:
+    env:
+      enabled: true
